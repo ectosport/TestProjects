@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using CircularBuffer;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
@@ -10,9 +11,10 @@ namespace CircularBufferUnitTests
         const int kCapacity = 10;
         readonly CircularBuffer<int> cbLossless = new CircularBuffer<int>(kCapacity);
         readonly CircularBuffer<int> cbDiscard = new CircularBuffer<int>(kCapacity, CircularBuffer<int>.DataIntegrity.DiscardOldest);
+        private Queue<int> compareData;
             
         [TestMethod]
-        public void TestAddingMultipleAtCapacityLossless()
+        public void Lossless_TestAddingMultipleAtCapacity()
         {
             cbLossless.Clear();
             cbLossless.Add(-1);
@@ -33,7 +35,7 @@ namespace CircularBufferUnitTests
         }
 
         [TestMethod]
-        public void TestIteratorLossless()
+        public void Lossless_TestIterator()
         {
             cbLossless.Clear();
 
@@ -130,7 +132,7 @@ namespace CircularBufferUnitTests
 
         [TestMethod]
         [ExpectedException(typeof(OverflowException))]
-        public void TestOneByOneOverflowLossless()
+        public void Lossless_TestOneByOneOverflow()
         {
             // add one by one, retrieve one by one.
             cbLossless.Clear();
@@ -204,5 +206,52 @@ namespace CircularBufferUnitTests
                 Assert.AreEqual(item, j++);
             }
         }
-    } 
+
+        [TestMethod]
+        public void Discard_TestOneByOneAddRetrieve()
+        {
+            // add one by one, retrieve one by one.
+            cbDiscard.Clear();
+            cbDiscard.DiscardedItemEvent += cb_DiscardedItemEvent;
+            compareData = new Queue<int>();
+
+            for (int i = 0; i < kCapacity + 20; ++i)
+            {
+                cbDiscard.Add(i);
+                compareData.Enqueue(i);
+            }
+            for (int i = 0; i < kCapacity; ++i)
+            {
+                Assert.AreEqual(cbDiscard.Retrieve(), i+20);
+            }
+            cbDiscard.DiscardedItemEvent -= cb_DiscardedItemEvent;
+        }
+
+        private void cb_DiscardedItemEvent(object sender, DiscardedItemEventArgs<int> e)
+        {
+            Console.WriteLine("Saw discarded item: " + e.DiscardedItem);
+            Assert.AreEqual(e.DiscardedItem, compareData.Dequeue());
+        }
+
+        [TestMethod]
+        public void Discard_TestThresholdNotification()
+        {
+            MyObserver observer = new MyObserver();
+            cbDiscard.Clear();
+            cbDiscard.Observer = observer;
+            cbDiscard.Observer.ThresholdForUnreadNotification = cbDiscard.Capacity - 2;
+            var solution = new int[cbDiscard.Observer.ThresholdForUnreadNotification];
+            observer.CompareData = solution;
+
+            for (int i = 0; i < cbDiscard.Observer.ThresholdForUnreadNotification; ++i)
+            {
+                solution[i] = i;
+                cbDiscard.Add(i);
+            }
+
+            observer.DoneEvent.WaitOne();
+            Assert.IsTrue(observer.Success);
+            cbDiscard.Observer = null;
+        }
+    }
 }
