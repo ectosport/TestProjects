@@ -10,8 +10,8 @@ namespace CircularBufferUnitTests
     {
         const int kCapacity = 10;
         private Queue<int> compareData;
-        private List<ICircularBuffer<int>> cbLosslessImplementations = new List<ICircularBuffer<int>>();
-        private List<ICircularBuffer<int>> cbDiscardImplementations = new List<ICircularBuffer<int>>();
+        private readonly List<ICircularBuffer<int>> cbLosslessImplementations = new List<ICircularBuffer<int>>();
+        private readonly List<ICircularBuffer<int>> cbDiscardImplementations = new List<ICircularBuffer<int>>();
 
         public UnitTest1()
         {
@@ -106,9 +106,9 @@ namespace CircularBufferUnitTests
                 cbLossless.Clear();
 
                 // add amount bigger than kCapacity.
-                int numPoints = kCapacity + 1;
-                int[] stuff = new int[numPoints];
-                for (int i = 0; i < numPoints; ++i)
+                const int numPoints = kCapacity + 1;
+                var stuff = new int[numPoints];
+                for (var i = 0; i < numPoints; ++i)
                 {
                     stuff[i] = i;
                 }
@@ -135,16 +135,16 @@ namespace CircularBufferUnitTests
                 cbLossless.Clear();
 
                 // add some, read some, overflow it, read everything
-                int numPoints = kCapacity + 1;
-                int[] stuff = new int[numPoints];
-                for (int i = 0; i < numPoints; ++i)
+                const int numPoints = kCapacity + 1;
+                var stuff = new int[numPoints];
+                for (var i = 0; i < numPoints; ++i)
                 {
                     stuff[i] = i;
                 }
 
                 cbLossless.Add(stuff, kCapacity - 2); // add 0 through 7
                 var task = cbLossless.RetrieveMultipleAsync(4);
-                int j = 0;
+                var j = 0;
                 foreach (var item in task.Result)
                 {
                     Assert.AreEqual(item, stuff[j++]);
@@ -236,21 +236,21 @@ namespace CircularBufferUnitTests
                 cbDiscard.Clear();
 
                 // add some, read some, overflow it, read everything
-                int numPoints = kCapacity + 1;
-                int[] stuff = new int[numPoints];
-                for (int i = 0; i < numPoints; ++i)
+                const int numPoints = kCapacity + 1;
+                var stuff = new int[numPoints];
+                for (var i = 0; i < numPoints; ++i)
                 {
                     stuff[i] = i;
                 }
 
                 cbDiscard.Add(stuff, kCapacity - 2); // add 0 through 7
                 var task = cbDiscard.RetrieveMultipleAsync(4);
-                int j = 0;
+                var j = 0;
                 foreach (var item in task.Result)
                 {
                     Assert.AreEqual(item, stuff[j++]);
                 }
-                for (int i = 0; i < numPoints; ++i)
+                for (var i = 0; i < numPoints; ++i)
                 {
                     stuff[i] = i + 8;
                 }
