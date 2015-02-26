@@ -38,9 +38,12 @@ namespace WCFTest
 
       private void InitializeWCF()
       {
+         // experimented with using a service instance (because I needed to set a property)
+         // http://stackoverflow.com/questions/14206267/how-do-i-pass-parameters-to-a-servicehost
          Uri baseServiceAddress = new Uri("http://localhost:1972/Computer");
-         host = new ServiceHost(typeof (FirstComputer), baseServiceAddress);
-
+         FirstComputer instance = new FirstComputer {Multipler = 2};
+         host = new ServiceHost(instance, baseServiceAddress);
+         
          // Enable MetaData publishing.
          ServiceMetadataBehavior serviceMetaDataBehaviour = new ServiceMetadataBehavior();
          serviceMetaDataBehaviour.HttpGetEnabled = true;
