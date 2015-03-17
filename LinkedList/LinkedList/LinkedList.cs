@@ -42,20 +42,43 @@ namespace LinkedList
             count = 0;
         }
 
-        public void Add(T item)
+        public void Add(T item, int index = -1)
         {
             Node<T> newNode = new Node<T>(item);
 
-            if (head == null)
+            if (index > count)
             {
+                // Beyond count, throw exception.
+                // It's OK to be == count because that means add it to the end.
+                throw new IndexOutOfRangeException();
+            }
+            else if (head == null || index == 0)
+            {
+                // special case for 
+                newNode.Next = head;
                 head = newNode;
             }
-            else
+            else if (index == -1)
             {
                 lastNode.Next = newNode;
             }
+            else
+            {
+                Node<T> iterateNode = this.head;
+                for (int i = 1; i < index; i++)
+                {
+                    iterateNode = iterateNode.Next;
+                }
 
-            lastNode = newNode;
+                newNode.Next = iterateNode.Next;
+                iterateNode.Next = newNode;
+            }
+
+            if (newNode.Next == null)
+            {
+                lastNode = newNode;
+            }
+
             ++count;
         }
 

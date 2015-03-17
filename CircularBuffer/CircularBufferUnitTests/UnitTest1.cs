@@ -1,25 +1,34 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Windows;
 using CircularBuffer;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace CircularBufferUnitTests
 {
+    // Other test attributes:
+    // [AssemblyInitialize()] - static
+    // [TestInitialize()]
+    // [TestCleanup()]
+    // [ClassCleanup()] - static
+    // [AssemblyCleanup()] - static
+
     [TestClass]
     public class UnitTest1
     {
         const int kCapacity = 10;
         private Queue<int> compareData;
-        private readonly List<ICircularBuffer<int>> cbLosslessImplementations = new List<ICircularBuffer<int>>();
-        private readonly List<ICircularBuffer<int>> cbDiscardImplementations = new List<ICircularBuffer<int>>();
+        static private readonly List<ICircularBuffer<int>> cbLosslessImplementations = new List<ICircularBuffer<int>>();
+        static private readonly List<ICircularBuffer<int>> cbDiscardImplementations = new List<ICircularBuffer<int>>();
 
-        public UnitTest1()
+        [ClassInitialize()]
+        public static void ClassInit(TestContext context)
         {
             cbLosslessImplementations.Add(new CircularBuffer<int>(kCapacity));
             cbLosslessImplementations.Add(new CircularBuffer2<int>(kCapacity));
 
             cbDiscardImplementations.Add(new CircularBuffer<int>(kCapacity, CircularBuffer<int>.DataIntegrity.DiscardOldest));
-            cbDiscardImplementations.Add(new CircularBuffer2<int>(kCapacity, CircularBuffer2<int>.DataIntegrity.DiscardOldest));
+            cbDiscardImplementations.Add(new CircularBuffer2<int>(kCapacity, CircularBuffer2<int>.DataIntegrity.DiscardOldest)); 
         }
 
         [TestMethod]
