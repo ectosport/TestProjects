@@ -20,6 +20,7 @@ namespace LinkedList
             public T Data
             {
                 get { return data; }
+                set { data = value; }
             }
 
             public Node(T data)
@@ -47,48 +48,7 @@ namespace LinkedList
             version = 0;
         }
 
-        public void Add(T item, int index)
-        {
-            Node<T> newNode = new Node<T>(item);
-
-            if (index > count)
-            {
-                // Beyond count, throw exception.
-                // It's OK to be == count because that means add it to the end.
-                throw new IndexOutOfRangeException();
-            }
-            else if (head == null || index == 0)
-            {
-                // special case for 
-                newNode.Next = head;
-                head = newNode;
-            }
-            else if (index == -1)
-            {
-                lastNode.Next = newNode;
-            }
-            else
-            {
-                Node<T> iterateNode = this.head;
-                for (int i = 1; i < index; i++)
-                {
-                    iterateNode = iterateNode.Next;
-                }
-
-                newNode.Next = iterateNode.Next;
-                iterateNode.Next = newNode;
-            }
-
-            if (newNode.Next == null)
-            {
-                lastNode = newNode;
-            }
-
-            ++count;
-            ++version;
-        }
-
-        public T Retrieve(int index)
+        private T Retrieve(int index)
         {
             if (index >= count)
             {
@@ -169,7 +129,43 @@ namespace LinkedList
 
         public void Insert(int index, T item)
         {
-            Add(item, index);
+            Node<T> newNode = new Node<T>(item);
+
+            if (index > count)
+            {
+                // Beyond count, throw exception.
+                // It's OK to be == count because that means add it to the end.
+                throw new IndexOutOfRangeException();
+            }
+            else if (head == null || index == 0)
+            {
+                // special case for 
+                newNode.Next = head;
+                head = newNode;
+            }
+            else if (index == -1)
+            {
+                lastNode.Next = newNode;
+            }
+            else
+            {
+                Node<T> iterateNode = this.head;
+                for (int i = 1; i < index; i++)
+                {
+                    iterateNode = iterateNode.Next;
+                }
+
+                newNode.Next = iterateNode.Next;
+                iterateNode.Next = newNode;
+            }
+
+            if (newNode.Next == null)
+            {
+                lastNode = newNode;
+            }
+
+            ++count;
+            ++version;
         }
 
         public T this[int index]
@@ -177,13 +173,24 @@ namespace LinkedList
             get { return Retrieve(index); }
             set
             {
-                throw new NotImplementedException();
+                if (index >= count || index < 0)
+                {
+                    throw new IndexOutOfRangeException();
+                }
+
+                Node<T> iterateNode = this.head;
+                for (int i = 0; i < index; i++)
+                {
+                    iterateNode = iterateNode.Next;
+                }
+
+                iterateNode.Data = value;
             }
         }
 
         public void Add(T item)
         {
-            Add(item, -1);
+            this.Insert(-1, item);
         }
 
         public void Clear()

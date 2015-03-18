@@ -24,9 +24,9 @@ namespace LinkedListTests
             list.Add(4);
             list.Add(3);
 
-            Assert.AreEqual(list.Retrieve(0), 5);
-            Assert.AreEqual(list.Retrieve(1), 4);
-            Assert.AreEqual(list.Retrieve(2), 3);
+            Assert.AreEqual(list[0], 5);
+            Assert.AreEqual(list[1], 4);
+            Assert.AreEqual(list[2], 3);
 
             Assert.AreEqual(list.Count, 3);
         }
@@ -41,8 +41,8 @@ namespace LinkedListTests
 
             list.RemoveAt(1);
 
-            Assert.AreEqual(list.Retrieve(0), 5);
-            Assert.AreEqual(list.Retrieve(1), 3);
+            Assert.AreEqual(list[0], 5);
+            Assert.AreEqual(list[1], 3);
 
             Assert.AreEqual(list.Count, 2);
         }
@@ -57,8 +57,8 @@ namespace LinkedListTests
 
             list.RemoveAt(0);
 
-            Assert.AreEqual(list.Retrieve(0), 4);
-            Assert.AreEqual(list.Retrieve(1), 3);
+            Assert.AreEqual(list[0], 4);
+            Assert.AreEqual(list[1], 3);
 
             Assert.AreEqual(list.Count, 2);
         }
@@ -73,8 +73,8 @@ namespace LinkedListTests
 
             list.RemoveAt(2);
 
-            Assert.AreEqual(list.Retrieve(0), 5);
-            Assert.AreEqual(list.Retrieve(1), 4);
+            Assert.AreEqual(list[0], 5);
+            Assert.AreEqual(list[1], 4);
 
             Assert.AreEqual(list.Count, 2);
         }
@@ -89,14 +89,14 @@ namespace LinkedListTests
 
             list.RemoveAt(0);
 
-            Assert.AreEqual(list.Retrieve(0), 4);
-            Assert.AreEqual(list.Retrieve(1), 3);
+            Assert.AreEqual(list[0], 4);
+            Assert.AreEqual(list[1], 3);
             Assert.AreEqual(list.Count, 2);
 
             list.Add(2);
-            Assert.AreEqual(list.Retrieve(0), 4);
-            Assert.AreEqual(list.Retrieve(1), 3);
-            Assert.AreEqual(list.Retrieve(2), 2);
+            Assert.AreEqual(list[0], 4);
+            Assert.AreEqual(list[1], 3);
+            Assert.AreEqual(list[2], 2);
             Assert.AreEqual(list.Count, 3);
         }
 
@@ -111,8 +111,8 @@ namespace LinkedListTests
 
             list.Add(2);
             list.Add(1);
-            Assert.AreEqual(list.Retrieve(0), 2);
-            Assert.AreEqual(list.Retrieve(1), 1);
+            Assert.AreEqual(list[0], 2);
+            Assert.AreEqual(list[1], 1);
             Assert.AreEqual(list.Count, 2);
         }
 
@@ -126,15 +126,15 @@ namespace LinkedListTests
 
             list.RemoveAt(2);
 
-            Assert.AreEqual(list.Retrieve(0), 5);
-            Assert.AreEqual(list.Retrieve(1), 4);
+            Assert.AreEqual(list[0], 5);
+            Assert.AreEqual(list[1], 4);
             Assert.AreEqual(list.Count, 2);
 
             list.Add(2);
 
-            Assert.AreEqual(list.Retrieve(0), 5);
-            Assert.AreEqual(list.Retrieve(1), 4);
-            Assert.AreEqual(list.Retrieve(2), 2);
+            Assert.AreEqual(list[0], 5);
+            Assert.AreEqual(list[1], 4);
+            Assert.AreEqual(list[2], 2);
             Assert.AreEqual(list.Count, 3);
         }
 
@@ -142,9 +142,9 @@ namespace LinkedListTests
         [Category("DataIntegrity")]
         public void AddAtHeadExplicitly()
         {
-            list.Add(5, 0);
+            list.Insert(0, 5);
             
-            Assert.AreEqual(list.Retrieve(0), 5);
+            Assert.AreEqual(list[0], 5);
             Assert.AreEqual(list.Count, 1);
         }
 
@@ -155,20 +155,20 @@ namespace LinkedListTests
             list.Add(5);
             list.Add(4);
             list.Add(3);
-            list.Add(2, 2);
-            list.Add(1, 0);
-            list.Add(0, 1);
+            list.Insert(2, 2);
+            list.Insert(0, 1);
+            list.Insert(1, 0);
             list.Add(-1);
-            list.Add(-2, 7);
+            list.Insert(7, -2);
 
-            Assert.AreEqual(list.Retrieve(0), 1);
-            Assert.AreEqual(list.Retrieve(1), 0);
-            Assert.AreEqual(list.Retrieve(2), 5);
-            Assert.AreEqual(list.Retrieve(3), 4);
-            Assert.AreEqual(list.Retrieve(4), 2);
-            Assert.AreEqual(list.Retrieve(5), 3);
-            Assert.AreEqual(list.Retrieve(6), -1);
-            Assert.AreEqual(list.Retrieve(7), -2);
+            Assert.AreEqual(list[0], 1);
+            Assert.AreEqual(list[1], 0);
+            Assert.AreEqual(list[2], 5);
+            Assert.AreEqual(list[3], 4);
+            Assert.AreEqual(list[4], 2);
+            Assert.AreEqual(list[5], 3);
+            Assert.AreEqual(list[6], -1);
+            Assert.AreEqual(list[7], -2);
             Assert.AreEqual(list.Count, 8);
         }
 
@@ -176,19 +176,19 @@ namespace LinkedListTests
         [Category("DataIntegrity")]
         public void AddExplicitlyAtStartMultiple()
         {
-            list.Add(5, 0);
-            list.Add(4, 0);
-            list.Add(3, 0);
-            list.Add(2, 0);
-            list.Add(1, 0);
-            list.Add(0, 0);
+            list.Insert(0, 5);
+            list.Insert(0, 4);
+            list.Insert(0, 3);
+            list.Insert(0, 2);
+            list.Insert(0, 1);
+            list.Insert(0, 0);
 
-            Assert.AreEqual(list.Retrieve(0), 0);
-            Assert.AreEqual(list.Retrieve(1), 1);
-            Assert.AreEqual(list.Retrieve(2), 2);
-            Assert.AreEqual(list.Retrieve(3), 3);
-            Assert.AreEqual(list.Retrieve(4), 4);
-            Assert.AreEqual(list.Retrieve(5), 5);
+            Assert.AreEqual(list[0], 0);
+            Assert.AreEqual(list[1], 1);
+            Assert.AreEqual(list[2], 2);
+            Assert.AreEqual(list[3], 3);
+            Assert.AreEqual(list[4], 4);
+            Assert.AreEqual(list[5], 5);
             Assert.AreEqual(list.Count, 6);
         }
 
@@ -197,7 +197,7 @@ namespace LinkedListTests
         [ExpectedException("System.IndexOutOfRangeException")]
         public void RetrieveIndexOutOfBoundsWhenEmpty()
         {
-            list.Retrieve(0);
+            var test = list[0];
         }
 
         [Test]
@@ -206,7 +206,7 @@ namespace LinkedListTests
         public void RetrieveIndexOutOfBoundsWithContents()
         {
             list.Add(1);
-            list.Retrieve(1);
+            var test = list[1];
         }
 
         [Test]
@@ -214,7 +214,7 @@ namespace LinkedListTests
         [ExpectedException("System.IndexOutOfRangeException")]
         public void AddBeyondCount()
         {
-            list.Add(0, 1);
+            list.Insert(1, 0);
         }
 
         [Test]
@@ -299,9 +299,9 @@ namespace LinkedListTests
 
             Assert.AreEqual(list.Remove(4), true); 
 
-            Assert.AreEqual(list.Retrieve(0), 1);
-            Assert.AreEqual(list.Retrieve(1), 2);
-            Assert.AreEqual(list.Retrieve(2), 3);
+            Assert.AreEqual(list[0], 1);
+            Assert.AreEqual(list[1], 2);
+            Assert.AreEqual(list[2], 3);
         }
 
         [Test]
@@ -315,9 +315,9 @@ namespace LinkedListTests
 
             Assert.AreEqual(list.Remove(1), true);
 
-            Assert.AreEqual(list.Retrieve(0), 2);
-            Assert.AreEqual(list.Retrieve(1), 3);
-            Assert.AreEqual(list.Retrieve(2), 4);
+            Assert.AreEqual(list[0], 2);
+            Assert.AreEqual(list[1], 3);
+            Assert.AreEqual(list[2], 4);
         }
 
         [Test]
@@ -331,10 +331,10 @@ namespace LinkedListTests
 
             Assert.AreEqual(list.Remove(5), false);
 
-            Assert.AreEqual(list.Retrieve(0), 1);
-            Assert.AreEqual(list.Retrieve(1), 2);
-            Assert.AreEqual(list.Retrieve(2), 3);
-            Assert.AreEqual(list.Retrieve(3), 4);
+            Assert.AreEqual(list[0], 1);
+            Assert.AreEqual(list[1], 2);
+            Assert.AreEqual(list[2], 3);
+            Assert.AreEqual(list[3], 4);
         }
 
         [Test]
@@ -349,7 +349,7 @@ namespace LinkedListTests
             int answer = 1;
             foreach (var item in list)
             {
-                Assert.AreEqual(list.Retrieve(answer - 1), answer);
+                Assert.AreEqual(list[answer - 1], answer);
                 ++answer;
             }
         }
@@ -367,7 +367,7 @@ namespace LinkedListTests
             int answer = 1;
             foreach (var item in list)
             {
-                Assert.AreEqual(list.Retrieve(answer - 1), answer);
+                Assert.AreEqual(list[answer - 1], answer);
                 ++answer;
 
                 // modify list while enumerating
@@ -388,7 +388,7 @@ namespace LinkedListTests
             int answer = 1;
             foreach (var item in list)
             {
-                Assert.AreEqual(list.Retrieve(answer - 1), answer);
+                Assert.AreEqual(list[answer - 1], answer);
                 ++answer;
 
                 // modify list while enumerating
@@ -408,16 +408,44 @@ namespace LinkedListTests
             int answer = 1;
             foreach (var item in list)
             {
-                Assert.AreEqual(list.Retrieve(answer - 1), answer);
+                Assert.AreEqual(list[answer - 1], answer);
                 ++answer;
 
                 int innerAnswer = 1;
                 foreach (var innerItem in list)
                 {
-                    Assert.AreEqual(list.Retrieve(innerAnswer - 1), innerAnswer);
+                    Assert.AreEqual(list[innerAnswer - 1], innerAnswer);
                     ++innerAnswer;
                 }
             }
+        }
+
+        [Test]
+        [Category("ArrayIndexTests")]
+        public void ArrayIndexSetterTest()
+        {
+            list.Add(1);
+            list.Add(2);
+            list.Add(3);
+            list.Add(4);
+
+            for (int i = 0; i < 4; ++i)
+            {
+                list[i] = list[i]*2;
+            }
+
+            for (int i = 0; i < 4; ++i)
+            {
+                Assert.AreEqual(list[i], (i+1)*2);
+            }
+        }
+
+        [Test]
+        [Category("ArrayIndexTests")]
+        [ExpectedException("System.IndexOutOfRangeException")]
+        public void ArrayIndexOutOfBoundsSetterTest()
+        {
+            list[5] = 10;
         }
     }
 }
