@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 using LinkedList;
 using NUnit.Framework;
 
@@ -38,7 +39,7 @@ namespace LinkedListTests
             list.Add(4);
             list.Add(3);
 
-            list.Remove(1);
+            list.RemoveAt(1);
 
             Assert.AreEqual(list.Retrieve(0), 5);
             Assert.AreEqual(list.Retrieve(1), 3);
@@ -54,7 +55,7 @@ namespace LinkedListTests
             list.Add(4);
             list.Add(3);
 
-            list.Remove(0);
+            list.RemoveAt(0);
 
             Assert.AreEqual(list.Retrieve(0), 4);
             Assert.AreEqual(list.Retrieve(1), 3);
@@ -70,7 +71,7 @@ namespace LinkedListTests
             list.Add(4);
             list.Add(3);
 
-            list.Remove(2);
+            list.RemoveAt(2);
 
             Assert.AreEqual(list.Retrieve(0), 5);
             Assert.AreEqual(list.Retrieve(1), 4);
@@ -86,7 +87,7 @@ namespace LinkedListTests
             list.Add(4);
             list.Add(3);
 
-            list.Remove(0);
+            list.RemoveAt(0);
 
             Assert.AreEqual(list.Retrieve(0), 4);
             Assert.AreEqual(list.Retrieve(1), 3);
@@ -104,7 +105,7 @@ namespace LinkedListTests
         public void AddOneAndRemoveAtStartAndAddAgain()
         {
             list.Add(5);
-            list.Remove(0);
+            list.RemoveAt(0);
 
             Assert.AreEqual(list.Count, 0);
 
@@ -123,7 +124,7 @@ namespace LinkedListTests
             list.Add(4);
             list.Add(3);
 
-            list.Remove(2);
+            list.RemoveAt(2);
 
             Assert.AreEqual(list.Retrieve(0), 5);
             Assert.AreEqual(list.Retrieve(1), 4);
@@ -204,8 +205,6 @@ namespace LinkedListTests
         [ExpectedException("System.IndexOutOfRangeException")]
         public void RetrieveIndexOutOfBoundsWithContents()
         {
-            LinkedList<int> list = new LinkedList<int>();
-
             list.Add(1);
             list.Retrieve(1);
         }
@@ -216,6 +215,209 @@ namespace LinkedListTests
         public void AddBeyondCount()
         {
             list.Add(0, 1);
+        }
+
+        [Test]
+        [Category("FindingTests")]
+        public void FindIndexOfExistingItem()
+        {
+            list.Add(1);
+            list.Add(2);
+            list.Add(3);
+            list.Add(4);
+
+            Assert.AreEqual(list.IndexOf(3), 2);
+        }
+
+        [Test]
+        [Category("FindingTests")]
+        public void FindIndexOfMissingItem()
+        {
+            list.Add(1);
+            list.Add(2);
+            list.Add(3);
+            list.Add(4);
+
+            Assert.AreEqual(list.IndexOf(5), -1);
+        }
+
+        [Test]
+        [Category("CopyToArrayTests")]
+        public void CopyToArrayBasic()
+        {
+            list.Add(1);
+            list.Add(2);
+            list.Add(3);
+            list.Add(4);
+
+            int[] array = new int[list.Count];
+            list.CopyTo(array, 0);
+
+            int answer = 1;
+            foreach (var item in array)
+            {
+                Assert.AreEqual(item, answer++);    
+            }
+        }
+
+        [Test]
+        [Category("CopyToArrayTests")]
+        [ExpectedException("System.IndexOutOfRangeException")]
+        public void CopyToArrayTooSmall()
+        {
+            list.Add(1);
+            list.Add(2);
+            list.Add(3);
+            list.Add(4);
+
+            int[] array = new int[list.Count];
+            list.CopyTo(array, 1);
+        }
+
+        [Test]
+        [Category("CopyToArrayTests")]
+        [ExpectedException("System.IndexOutOfRangeException")]
+        public void CopyToArrayTooSmallIndex0()
+        {
+            list.Add(1);
+            list.Add(2);
+            list.Add(3);
+            list.Add(4);
+
+            int[] array = new int[list.Count - 1];
+            list.CopyTo(array, 0);
+        }
+
+        [Test]
+        [Category("RemoveTests")]
+        public void RemoveItemAtEnd()
+        {
+            list.Add(1);
+            list.Add(2);
+            list.Add(3);
+            list.Add(4);
+
+            Assert.AreEqual(list.Remove(4), true); 
+
+            Assert.AreEqual(list.Retrieve(0), 1);
+            Assert.AreEqual(list.Retrieve(1), 2);
+            Assert.AreEqual(list.Retrieve(2), 3);
+        }
+
+        [Test]
+        [Category("RemoveTests")]
+        public void RemoveItemAtStart()
+        {
+            list.Add(1);
+            list.Add(2);
+            list.Add(3);
+            list.Add(4);
+
+            Assert.AreEqual(list.Remove(1), true);
+
+            Assert.AreEqual(list.Retrieve(0), 2);
+            Assert.AreEqual(list.Retrieve(1), 3);
+            Assert.AreEqual(list.Retrieve(2), 4);
+        }
+
+        [Test]
+        [Category("RemoveTests")]
+        public void RemoveMissingItem()
+        {
+            list.Add(1);
+            list.Add(2);
+            list.Add(3);
+            list.Add(4);
+
+            Assert.AreEqual(list.Remove(5), false);
+
+            Assert.AreEqual(list.Retrieve(0), 1);
+            Assert.AreEqual(list.Retrieve(1), 2);
+            Assert.AreEqual(list.Retrieve(2), 3);
+            Assert.AreEqual(list.Retrieve(3), 4);
+        }
+
+        [Test]
+        [Category("EnumeratorTests")]
+        public void EnumerateOverList()
+        {
+            list.Add(1);
+            list.Add(2);
+            list.Add(3);
+            list.Add(4);
+
+            int answer = 1;
+            foreach (var item in list)
+            {
+                Assert.AreEqual(list.Retrieve(answer - 1), answer);
+                ++answer;
+            }
+        }
+
+        [Test]
+        [Category("EnumeratorTests")]
+        [ExpectedException("System.InvalidOperationException")]
+        public void EnumerateOverListAndModifyWithAdd()
+        {
+            list.Add(1);
+            list.Add(2);
+            list.Add(3);
+            list.Add(4);
+
+            int answer = 1;
+            foreach (var item in list)
+            {
+                Assert.AreEqual(list.Retrieve(answer - 1), answer);
+                ++answer;
+
+                // modify list while enumerating
+                list.Add(5);
+            }
+        }
+
+        [Test]
+        [Category("EnumeratorTests")]
+        [ExpectedException("System.InvalidOperationException")]
+        public void EnumerateOverListAndModifyWithRemove()
+        {
+            list.Add(1);
+            list.Add(2);
+            list.Add(3);
+            list.Add(4);
+
+            int answer = 1;
+            foreach (var item in list)
+            {
+                Assert.AreEqual(list.Retrieve(answer - 1), answer);
+                ++answer;
+
+                // modify list while enumerating
+                list.RemoveAt(0);
+            }
+        }
+
+        [Test]
+        [Category("EnumeratorTests")]
+        public void NestedEnumerateOverList()
+        {
+            list.Add(1);
+            list.Add(2);
+            list.Add(3);
+            list.Add(4);
+
+            int answer = 1;
+            foreach (var item in list)
+            {
+                Assert.AreEqual(list.Retrieve(answer - 1), answer);
+                ++answer;
+
+                int innerAnswer = 1;
+                foreach (var innerItem in list)
+                {
+                    Assert.AreEqual(list.Retrieve(innerAnswer - 1), innerAnswer);
+                    ++innerAnswer;
+                }
+            }
         }
     }
 }

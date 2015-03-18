@@ -1,10 +1,13 @@
 using System;
+using System.Collections;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace LinkedList
 {
-    public class LinkedList<T>
+    public class LinkedList<T> : IList<T> where T : IEquatable<T>
     {
-        private class Node<T>
+        private class Node<T> where T:IEquatable<T>
         {
             private Node<T> nextNode;
             public Node<T> Next
@@ -29,7 +32,8 @@ namespace LinkedList
         private Node<T> head;
         private Node<T> lastNode;
         private int count;
-
+        private int version;
+        
         public int Count
         {
             get { return count; }
@@ -40,9 +44,10 @@ namespace LinkedList
             head = null;
             lastNode = null;
             count = 0;
+            version = 0;
         }
 
-        public void Add(T item, int index = -1)
+        public void Add(T item, int index)
         {
             Node<T> newNode = new Node<T>(item);
 
@@ -80,6 +85,7 @@ namespace LinkedList
             }
 
             ++count;
+            ++version;
         }
 
         public T Retrieve(int index)
@@ -98,9 +104,9 @@ namespace LinkedList
             return iterateNode.Data;
         }
 
-        public T Remove(int index)
+        public void RemoveAt(int index)
         {
-            if (index >= count)
+            if (index >= count || index < 0)
             {
                 throw new IndexOutOfRangeException();
             }
@@ -130,12 +136,12 @@ namespace LinkedList
             }
 
             --count;
-            return iterateNode.Data;
+            ++version;
         }
 
         public void PrintNodesToConsole()
         {
-            Node<T> iterateNode = head;
+            Node<T> iterateNode = this.head;
             int i = 0;
 
             while (iterateNode != null)
@@ -144,5 +150,171 @@ namespace LinkedList
                 iterateNode = iterateNode.Next;
             }
         }
+
+        public int IndexOf(T item)
+        {
+            Node<T> iterateNode = this.head;
+            int i = 0;
+
+            while (iterateNode != null)
+            {
+                if (item.Equals(iterateNode.Data)) return i;
+
+                iterateNode = iterateNode.Next;
+                ++i;
+            }
+
+            return -1;
+        }
+
+        public void Insert(int index, T item)
+        {
+            Add(item, index);
+        }
+
+        public T this[int index]
+        {
+            get { return Retrieve(index); }
+            set
+            {
+                throw new NotImplementedException();
+            }
+        }
+
+        public void Add(T item)
+        {
+            Add(item, -1);
+        }
+
+        public void Clear()
+        {
+            this.head = null;
+            this.lastNode = null;
+            this.count = 0;
+            ++this.version;
+        }
+
+        public bool Contains(T item)
+        {
+            return this.IndexOf(item) >= 0;
+        }
+
+        public void CopyTo(T[] array, int arrayIndex)
+        {
+            if ((array.Count() - arrayIndex) < this.count)
+            {
+                throw new IndexOutOfRangeException();
+            }
+
+            Node<T> iterateNode = this.head;
+            int i = 0;
+
+            while (iterateNode != null)
+            {
+                array[i++] = iterateNode.Data;
+                iterateNode = iterateNode.Next;
+            }
+        }
+
+        public bool IsReadOnly
+        {
+            get { return false; }
+        }
+
+        public bool Remove(T item)
+        {
+            int index = this.IndexOf(item);
+            if (index < 0) return false;
+
+            this.RemoveAt(index);
+            return true;
+        }
+
+        public IEnumerator<T> GetEnumerator()
+        {
+            return new Enumerator(this);;
+        }
+
+        IEnumerator IEnumerable.GetEnumerator()
+        {
+            return this.GetEnumerator();
+        }
+
+        #region Nested classes
+
+        public struct Enumerator : IEnumerator<T>
+        {
+            /// <summary>
+            /// The collection to iterate through.
+            /// </summary>
+            private LinkedList<T> list;
+
+            /// <summary>
+            /// The modification value of the collection when the enumerator was created.
+            /// </summary>
+            private readonly long version;
+            /// <summary>
+            /// The current value of the enumeration.
+            /// </summary>
+            private Node<T> currentNode;
+            /// <summary>
+            /// The constructor.
+            /// </summary>
+            /// <param name="buffer">The collection to iterate through.</param>
+            internal Enumerator(LinkedList<T> buffer)
+            {
+                this.list = buffer;
+                this.currentNode = buffer.head;
+                this.version = buffer.version;
+            }
+            /// <summary>
+            /// Gets the current value of the iteration. Throws an exception if enumerator has whether not started or finished.
+            /// </summary>
+            public T Current
+            {
+                get
+                {
+                    if (currentNode == null) return default(T);
+                    
+                    return this.currentNode.Data;
+                }
+            }
+            /// <summary>
+            /// The method corresponding to the IDisposable interface.
+            /// </summary>
+            public void Dispose()
+            {
+                
+            }
+            /// <summary>
+            /// Advances the enumerator to the next element in the collection. Returns true if the enumerator has succefully advanced; otherwise false.
+            /// </summary>
+            public bool MoveNext()
+            {
+                if (this.version != this.list.version)
+                {
+                    throw new InvalidOperationException("Enumeration canceled. Collection was modified.");
+                }
+
+                this.currentNode = this.currentNode.Next;
+                if (this.currentNode == null) return false;
+
+                return true;
+            }
+
+            public void Reset()
+            {
+                throw new NotImplementedException();
+            }
+
+            object System.Collections.IEnumerator.Current
+            {
+                get
+                {
+                    return Current;
+                }
+            }
+        }
+        #endregion
     }
 }
