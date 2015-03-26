@@ -30,6 +30,20 @@ namespace BowlingGameTests
         }
 
         [TestMethod]
+        public void TestCheckEarlyScore()
+        {
+            BowlingGame.BowlingGame game = new BowlingGame.BowlingGame();
+
+            game.Roll(6);
+            game.Roll(3);
+            game.Roll(3);
+            game.Roll(6);
+            
+            Assert.AreEqual(game.Score, 18);
+        }
+
+
+        [TestMethod]
         public void TestSingleSpare()
         {
             BowlingGame.BowlingGame game = new BowlingGame.BowlingGame();
@@ -53,6 +67,64 @@ namespace BowlingGameTests
             RollBowlingBall(game, 0, 16);
 
             Assert.AreEqual(game.Score, 28);
+        }
+
+        [TestMethod]
+        public void TestSingleStrikeWithoutRollingMore()
+        {
+            BowlingGame.BowlingGame game = new BowlingGame.BowlingGame();
+
+            try
+            {
+                game.Roll(10);
+                var score = game.Score;
+            }
+            catch (InvalidOperationException ex)
+            {
+                StringAssert.Contains(ex.Message, BowlingGame.BowlingGame.ExceptionCannotCalculateIncompleteScore);
+                return;
+            }
+
+            Assert.Fail("Expected exception for calculating score prematurely.");
+        }
+
+        [TestMethod]
+        public void TestSingleSpareWithoutRollingMore()
+        {
+            BowlingGame.BowlingGame game = new BowlingGame.BowlingGame();
+
+            try
+            {
+                game.Roll(4);
+                game.Roll(6);
+                var score = game.Score;
+            }
+            catch (InvalidOperationException ex)
+            {
+                StringAssert.Contains(ex.Message, BowlingGame.BowlingGame.ExceptionCannotCalculateIncompleteScore);
+                return;
+            }
+
+            Assert.Fail("Expected exception for calculating score prematurely.");
+        }
+
+        [TestMethod]
+        public void TestIncompleteFrame()
+        {
+            BowlingGame.BowlingGame game = new BowlingGame.BowlingGame();
+
+            try
+            {
+                game.Roll(5);
+                var score = game.Score;
+            }
+            catch (InvalidOperationException ex)
+            {
+                StringAssert.Contains(ex.Message, BowlingGame.BowlingGame.ExceptionCannotCalculateIncompleteScore);
+                return;
+            }
+
+            Assert.Fail("Expected exception for calculating score prematurely.");
         }
 
         [TestMethod]
