@@ -6,7 +6,8 @@
         {
             if (n == 0) return 0;
             else if (n == 1) return 1;
-            else return Calculate(n - 1) + Calculate(n - 2);
+            else if (n > 1) return Calculate(n - 1) + Calculate(n - 2);
+            else return Calculate(n + 2) - Calculate(n + 1);
         }
     }
 }

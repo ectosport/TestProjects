@@ -12,7 +12,7 @@ namespace FibonacciUnitTests
         [TestInitialize]
         public void Initialize()
         {
-            solver = new FibonacciIterative();    
+            solver = new FibonacciRecursive();    
         }
 
         [TestMethod]
@@ -25,6 +25,29 @@ namespace FibonacciUnitTests
         public void CalculateFib1()
         {
             Assert.AreEqual(solver.Calculate(1), 1);
+        }
+
+        [TestMethod]
+        public void CalculateFibNeg1()
+        {
+            Assert.AreEqual(solver.Calculate(-1), 1);
+        }
+
+        [TestMethod]
+        public void CalculateFibNeg2()
+        {
+            Assert.AreEqual(solver.Calculate(-2), -1);
+        }
+
+        [TestMethod]
+        public void CalculateFibToNeg8()
+        {
+            int[] answers = new int[8] { 1, -1, 2, -3, 5, -8, 13, -21 };
+            int i = -1;
+            foreach (var answer in answers)
+            {
+                Assert.AreEqual(solver.Calculate(i--), answer);
+            }
         }
 
         [TestMethod]
