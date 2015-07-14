@@ -38,8 +38,8 @@ namespace csProjEditor
          }
       }
 
-      private Dictionary<string, XmlElement> projectReferenceLookup = new Dictionary<string, XmlElement>();
-      private XmlDocument csProjFile;
+      private Dictionary<string, XElement> projectReferenceLookup = new Dictionary<string, XElement>();
+      private XDocument csProjDocument;
       private string csProjLocation;
 
       public MainWindow()
@@ -51,24 +51,22 @@ namespace csProjEditor
 
       private void readXMLButtonClicked(object sender, RoutedEventArgs e)
       {
-         csProjFile = new XmlDocument();
-         csProjFile.Load(this.CsProjLocation);
+         csProjDocument = XDocument.Load(this.CsProjLocation);
          ProjectReferences.Clear();
          projectReferenceLookup.Clear();
 
-         var nodeList = csProjFile.GetElementsByTagName("ProjectReference");
-         foreach (XmlElement node in nodeList)
-         {
-            XmlAttribute attribute = node.Attributes["Include"];
-            ProjectReferences.Add(attribute.Value);
-            projectReferenceLookup.Add(attribute.Value, node);
-         }
+         var projRefElements = (from d in csProjDocument.Descendants()
+            where d.Name.LocalName == "ProjectReference" || d.Name.LocalName == "Reference"
+            select d);
 
-         nodeList = csProjFile.GetElementsByTagName("Reference");
-         foreach (XmlElement node in nodeList)
+         foreach (var projRef in projRefElements)
          {
-            ProjectReferences.Add(node.Attributes["Include"].Value);
-            projectReferenceLookup.Add(node.Attributes["Include"].Value, node);
+            var includeAttr = projRef.Attributes("Include").First();
+            if (includeAttr != null)
+            {
+               ProjectReferences.Add(includeAttr.Value);
+               projectReferenceLookup.Add(includeAttr.Value, projRef);
+            }
          }
       }
 
@@ -79,10 +77,10 @@ namespace csProjEditor
          {
             foreach (string refName in itemsToDelete)
             {
-               projectReferenceLookup[refName].ParentNode.RemoveChild(projectReferenceLookup[refName]);
+               projectReferenceLookup[refName].Remove();
             }
 
-            csProjFile.Save(this.CsProjLocation);
+            csProjDocument.Save(this.CsProjLocation);
 
             readXMLButtonClicked(null, null);
          }
