@@ -1,0 +1,26 @@
+﻿<Window x:Class="csProjEditor.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="MainWindow" Height="350" Width="525">
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            
+        </Grid.RowDefinitions>
+        <StackPanel Orientation="Horizontal">
+            <Button Content="Read XML" Click="readXMLButtonClicked" MinWidth="100" Margin="5"/>
+            <Button Content="Delete Selected" Click="deleteSelectedClicked" MinWidth="100" Margin="5" />
+        </StackPanel>
+        <Grid Grid.Row="1">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition />
+            </Grid.ColumnDefinitions>
+            <Button Content="Browse..." Click="browseDirClicked" MinWidth="100" Margin="5"/>
+            <TextBox Grid.Column="1" Margin="5" Text="{Binding CsProjLocation}" />
+        </Grid>
+        <ListBox Grid.Row="2" ItemsSource="{Binding ProjectReferences}" SelectionMode="Multiple" x:Name="ProjectReferencesListBox"></ListBox>
+    </Grid>
+</Window>
