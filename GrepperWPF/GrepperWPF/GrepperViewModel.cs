@@ -35,14 +35,16 @@ namespace GrepperWPF
             private set
             {
                 _rootDirectory = value;
-                NotifyPropertyChanged("RootDirectory");
-                NotifyPropertyChanged("SearchButtonEnabled");
-
+                
                 if (browseHistory.Contains(_rootDirectory) == false && Directory.Exists(_rootDirectory))
                 {
+                    if (_rootDirectory.EndsWith("\\") == false) _rootDirectory += "\\";
                     browseHistory.Add(_rootDirectory);
                     NotifyPropertyChanged("BrowseHistoryTooltip");
                 }
+
+                NotifyPropertyChanged("RootDirectory");
+                NotifyPropertyChanged("SearchButtonEnabled");
             }
         }
 
@@ -214,6 +216,8 @@ namespace GrepperWPF
 
         public void SaveSettings()
         {
+            // Settings are stored in a place similar to this:
+            // C:\Users\<USERNAME>\AppData\Local\Microsoft\GrepperWPF.exe_Url_tbivpf0tacg32fgv0kknmcjlzzhn4nc2
             Settings.Default.Extensions = FileExtensions;
             Settings.Default.Path = RootDirectory;
             Settings.Default.SearchFilenamesOnly = SearchFilenamesOnly;
@@ -242,8 +246,6 @@ namespace GrepperWPF
                 _cancelRequested = false;
                 CommandManager.InvalidateRequerySuggested();
                 
-                if (RootDirectory.EndsWith("\\") == false) RootDirectory += "\\";
-
                 _task = new SearchSingleDirTask(RootDirectory, FileExtensions, SearchString, SearchFilenamesOnly);
                 try
                 {
