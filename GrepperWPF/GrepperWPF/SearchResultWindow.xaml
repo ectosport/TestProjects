@@ -1,0 +1,19 @@
+﻿<Window x:Class="GrepperWPF.SearchResultWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:local="clr-namespace:GrepperWPF"
+        Title="{Binding FullPath}" Height="600" Width="800">
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+        <StackPanel Orientation="Horizontal">
+            <Button Content="Previous" MinWidth="90" Margin="5" Command="{Binding PreviousCommand}"></Button>
+            <Button Content="Next" MinWidth="90" Margin="5" Command="{Binding NextCommand}"></Button>
+            <TextBlock Margin="10 5" Text="{Binding InstanceIndicator}" FontWeight="Bold" VerticalAlignment="Center"></TextBlock>
+        </StackPanel>
+        <TextBox Text="{Binding FileContents}" Grid.Row="1" IsReadOnly="True" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto"
+                 local:TextBoxHelper.SelectionStart="{Binding SelectionStart, Mode=TwoWay}" local:TextBoxHelper.SelectionLength="{Binding SelectionLength, Mode=TwoWay}"></TextBox>
+    </Grid>
+</Window>

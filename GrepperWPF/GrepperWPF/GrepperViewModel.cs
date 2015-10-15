@@ -12,301 +12,273 @@ using Microsoft.Win32;
 
 namespace GrepperWPF
 {
-    internal enum BrowseDirection
-    {
-        Back, Forward
-    }
+   internal enum BrowseDirection
+   {
+      Back, Forward
+   }
 
-    internal class GrepperViewModel : INotifyPropertyChanged
-    {
-        public bool SearchFilenamesOnly
-        {
-            get;
-            set;
-        }
+   internal class GrepperViewModel : INotifyPropertyChanged
+   {
+      public bool SearchFilenamesOnly
+      {
+         get;
+         set;
+      }
 
-        private string _rootDirectory;
-        public string RootDirectory
-        {
-            get
+      private string _rootDirectory;
+      public string RootDirectory
+      {
+         get
+         {
+            return _rootDirectory;
+         }
+         private set
+         {
+            _rootDirectory = value;
+
+            if (browseHistory.Contains(_rootDirectory) == false && Directory.Exists(_rootDirectory))
             {
-                return _rootDirectory;
+               if (_rootDirectory.EndsWith("\\") == false) _rootDirectory += "\\";
+               browseHistory.Add(_rootDirectory);
+               NotifyPropertyChanged("BrowseHistoryTooltip");
             }
-            private set
+
+            NotifyPropertyChanged("RootDirectory");
+            NotifyPropertyChanged("SearchButtonEnabled");
+         }
+      }
+
+      private string _fileExtensions;
+      public string FileExtensions
+      {
+         get
+         {
+            return _fileExtensions;
+         }
+         set
+         {
+            _fileExtensions = value;
+            NotifyPropertyChanged("FileExtensions");
+         }
+      }
+
+      private List<SearchResult> _searchResults;
+      public List<SearchResult> SearchResults
+      {
+         get
+         {
+            return _searchResults;
+         }
+         set
+         {
+            _searchResults = value;
+            NotifyPropertyChanged("SearchResults");
+         }
+      }
+
+      private bool _isSearching = false;
+      private bool IsSearching
+      {
+         get
+         {
+            return _isSearching;
+         }
+         set
+         {
+            _isSearching = value;
+            NotifyPropertyChanged("SearchButtonText");
+         }
+      }
+      public string SearchButtonText
+      {
+         get
+         {
+            return IsSearching ? "Cancel" : "Search";
+         }
+      }
+
+      private string _searchString;
+      public string SearchString
+      {
+         get
+         {
+            return _searchString;
+         }
+         set
+         {
+            _searchString = value;
+            NotifyPropertyChanged("SearchString");
+         }
+      }
+
+      private string _statusText;
+      public string StatusText
+      {
+         get
+         {
+            return _statusText;
+         }
+         set
+         {
+            _statusText = value;
+            NotifyPropertyChanged("StatusText");
+         }
+      }
+
+      private bool SearchButtonEnabled
+      {
+         get
+         {
+            return (!_cancelRequested && Directory.Exists(_rootDirectory) && !String.IsNullOrEmpty(_searchString));
+         }
+      }
+
+      private readonly ICommand _searchCommand;
+      public ICommand SearchCommand
+      {
+         get { return _searchCommand; }
+      }
+
+      private readonly ICommand _browseCommand;
+      public ICommand BrowseCommand
+      {
+         get { return _browseCommand; }
+      }
+
+      private readonly ICommand _browseHistoryCommand;
+      public ICommand BrowseHistoryCommand
+      {
+         get { return _browseHistoryCommand; }
+      }
+
+      public string BrowseHistoryTooltip
+      {
+         get
+         {
+            return string.Join(Environment.NewLine, browseHistory.ToArray());
+         }
+      }
+
+      private SearchSingleDirTask _task;
+      private bool _cancelRequested;
+      private Stopwatch st = new Stopwatch();
+      private List<string> browseHistory = new List<string>();
+
+      public GrepperViewModel()
+      {
+         if (String.IsNullOrEmpty(Settings.Default.BrowseHistory) == false)
+         {
+            browseHistory = Settings.Default.BrowseHistory.Split('?').ToList();
+            NotifyPropertyChanged("BrowseHistoryTooltip");
+         }
+         FileExtensions = Settings.Default.Extensions;
+         RootDirectory = Settings.Default.Path;
+         SearchFilenamesOnly = Settings.Default.SearchFilenamesOnly;
+         SearchString = Settings.Default.SearchString;
+
+         _searchCommand = new CommandHandler((o) => this.Search(), () => this.SearchButtonEnabled);
+         _browseCommand = new CommandHandler(browseForDirectory, () => true);
+         _browseHistoryCommand = new CommandHandler(this.navigateHistory, () => true);
+      }
+
+      private void browseForDirectory(object parameter)
+      {
+         string strPath = Environment.CurrentDirectory;
+         OpenFileDialog dialog = new OpenFileDialog();
+         dialog.Title = "Navigate to folder to diff...";
+         dialog.CheckFileExists = false;
+         dialog.FileName = "Choose Current Folder";
+         dialog.Filter = "Folder|Folder";
+         dialog.InitialDirectory = this.RootDirectory;
+
+         bool? b = dialog.ShowDialog();
+         if (b == true)
+         {
+            this.RootDirectory = dialog.FileName.Substring(0, dialog.FileName.LastIndexOf(@"\")); ;
+         }
+      }
+
+      private void navigateHistory(object parameter)
+      {
+         BrowseDirection direction = (BrowseDirection)parameter;
+
+         int currentIndex = browseHistory.IndexOf(RootDirectory);
+
+         if (direction == BrowseDirection.Forward && (currentIndex + 1) < browseHistory.Count)
+         {
+            RootDirectory = browseHistory[currentIndex + 1];
+         }
+         else if (direction == BrowseDirection.Back && (currentIndex - 1) >= 0)
+         {
+            RootDirectory = browseHistory[currentIndex - 1];
+         }
+      }
+
+      public void SaveSettings()
+      {
+         // Settings are stored in a place similar to this:
+         // C:\Users\<USERNAME>\AppData\Local\Microsoft\GrepperWPF.exe_Url_tbivpf0tacg32fgv0kknmcjlzzhn4nc2
+         Settings.Default.Extensions = FileExtensions;
+         Settings.Default.Path = RootDirectory;
+         Settings.Default.SearchFilenamesOnly = SearchFilenamesOnly;
+         Settings.Default.SearchString = SearchString;
+         Settings.Default.BrowseHistory = string.Join("?", browseHistory.ToArray());
+         Settings.Default.Save();
+      }
+
+      async public void Search()
+      {
+         if (IsSearching)
+         {
+            StatusText = "Cancelling...";
+            _task.CancelSearch();
+            _cancelRequested = true;
+            CommandManager.InvalidateRequerySuggested();
+         }
+         else
+         {
+            st.Reset();
+            st.Start();
+            SaveSettings();
+
+            StatusText = "Searching...";
+            IsSearching = true;
+            _cancelRequested = false;
+            CommandManager.InvalidateRequerySuggested();
+
+            _task = new SearchSingleDirTask(RootDirectory, FileExtensions, SearchString, SearchFilenamesOnly);
+            try
             {
-                _rootDirectory = value;
-                
-                if (browseHistory.Contains(_rootDirectory) == false && Directory.Exists(_rootDirectory))
-                {
-                    if (_rootDirectory.EndsWith("\\") == false) _rootDirectory += "\\";
-                    browseHistory.Add(_rootDirectory);
-                    NotifyPropertyChanged("BrowseHistoryTooltip");
-                }
-
-                NotifyPropertyChanged("RootDirectory");
-                NotifyPropertyChanged("SearchButtonEnabled");
+               await _task.PerformSearch();
             }
-        }
-
-        private string _fileExtensions;
-        public string FileExtensions
-        {
-            get
+            catch (Exception ex)
             {
-                return _fileExtensions;
+               if (ex is AggregateException || ex is OperationCanceledException)
+               {
+
+               }
+               else throw;
             }
-            set
-            {
-                _fileExtensions = value;
-                NotifyPropertyChanged("FileExtensions");
-            }
-        }
 
-        private List<SearchResult> _searchResults;
-        public List<SearchResult> SearchResults
-        {
-            get
-            {
-                return _searchResults;
-            }
-            set
-            {
-                _searchResults = value;
-                NotifyPropertyChanged("SearchResults");
-            }
-        }
+            SearchResults = _task.SearchResults;
+            st.Stop();
 
-        private bool _isSearching = false;
-        private bool IsSearching
-        {
-            get
-            {
-                return _isSearching;
-            }
-            set
-            {
-                _isSearching = value;
-                NotifyPropertyChanged("SearchButtonText");
-            }
-        }
-        public string SearchButtonText
-        {
-            get
-            {
-                return IsSearching ? "Cancel" : "Search";
-            }
-        }
+            StatusText = (_cancelRequested ? "Cancelled!" : "Done!") + "  Found " + SearchResults.Count +
+                " files... Checked " + _task.FilesSearched + " files. Time elapsed: " + st.Elapsed.ToString();
 
-        private string _searchString;
-        public string SearchString
-        {
-            get
-            {
-                return _searchString;
-            }
-            set
-            {
-                _searchString = value;
-                NotifyPropertyChanged("SearchString");
-            }
-        }
+            IsSearching = false;
+            _cancelRequested = false;
+            CommandManager.InvalidateRequerySuggested(); ;
+         }
+      }
 
-        private string _statusText;
-        public string StatusText
-        {
-            get
-            {
-                return _statusText;
-            }
-            set
-            {
-                _statusText = value;
-                NotifyPropertyChanged("StatusText");
-            }
-        }
-
-        private bool SearchButtonEnabled
-        {
-            get
-            {
-                return (!_cancelRequested && Directory.Exists(_rootDirectory) && !String.IsNullOrEmpty(_searchString));
-            }
-        }
-
-        private readonly ICommand _searchCommand;
-        public ICommand SearchCommand
-        {
-            get { return _searchCommand; }
-        }
-
-        private readonly ICommand _browseCommand;
-        public ICommand BrowseCommand
-        {
-            get { return _browseCommand; }
-        }
-
-        private readonly ICommand _browseHistoryCommand;
-        public ICommand BrowseHistoryCommand
-        {
-            get { return _browseHistoryCommand; }
-        }
-
-        public string BrowseHistoryTooltip
-        {
-            get 
-            {
-                return string.Join(Environment.NewLine, browseHistory.ToArray());
-            }
-        }
-
-        private SearchSingleDirTask _task;
-        private bool _cancelRequested;
-        private Stopwatch st = new Stopwatch();
-        private List<string> browseHistory = new List<string>();
-        
-        public GrepperViewModel()
-        {
-            if (String.IsNullOrEmpty(Settings.Default.BrowseHistory) == false)
-            {
-                browseHistory = Settings.Default.BrowseHistory.Split('?').ToList();
-                NotifyPropertyChanged("BrowseHistoryTooltip");
-            }
-            FileExtensions = Settings.Default.Extensions;
-            RootDirectory = Settings.Default.Path;
-            SearchFilenamesOnly = Settings.Default.SearchFilenamesOnly;
-            SearchString = Settings.Default.SearchString;            
-
-            _searchCommand = new CommandHandler((o) => this.Search(), () => this.SearchButtonEnabled);
-            _browseCommand = new CommandHandler(browseForDirectory, () => true);
-            _browseHistoryCommand = new CommandHandler((o) => this.navigateHistory(o), () => true);            
-        }
-
-        private void browseForDirectory(object parameter)
-        {
-            string strPath = Environment.CurrentDirectory;
-            OpenFileDialog dialog = new OpenFileDialog();
-            dialog.Title = "Navigate to folder to diff...";
-            dialog.CheckFileExists = false;
-            dialog.FileName = "Choose Current Folder";
-            dialog.Filter = "Folder|Folder";
-            dialog.InitialDirectory = this.RootDirectory;
-
-            bool? b = dialog.ShowDialog();
-            if (b == true)
-            {
-                this.RootDirectory = dialog.FileName.Substring(0, dialog.FileName.LastIndexOf(@"\")); ;
-            }
-        }
-
-        private void navigateHistory(object parameter)
-        {
-            BrowseDirection direction = (BrowseDirection)parameter;
-
-            int currentIndex = browseHistory.IndexOf(RootDirectory);
-
-            if (direction == BrowseDirection.Forward && (currentIndex + 1) < browseHistory.Count)
-            {
-                RootDirectory = browseHistory[currentIndex + 1];
-            }
-            else if (direction == BrowseDirection.Back && (currentIndex - 1) >= 0)
-            {
-                RootDirectory = browseHistory[currentIndex - 1];
-            }
-        }
-
-        public void SaveSettings()
-        {
-            // Settings are stored in a place similar to this:
-            // C:\Users\<USERNAME>\AppData\Local\Microsoft\GrepperWPF.exe_Url_tbivpf0tacg32fgv0kknmcjlzzhn4nc2
-            Settings.Default.Extensions = FileExtensions;
-            Settings.Default.Path = RootDirectory;
-            Settings.Default.SearchFilenamesOnly = SearchFilenamesOnly;
-            Settings.Default.SearchString = SearchString;
-            Settings.Default.BrowseHistory = string.Join("?", browseHistory.ToArray());
-            Settings.Default.Save();
-        }
-
-        async public void Search()
-        {
-            if (IsSearching)
-            {
-                StatusText = "Cancelling...";
-                _task.CancelSearch();
-                _cancelRequested = true;
-                CommandManager.InvalidateRequerySuggested();
-            }
-            else
-            {
-                st.Reset();
-                st.Start();
-                SaveSettings();
-
-                StatusText = "Searching...";
-                IsSearching = true;
-                _cancelRequested = false;
-                CommandManager.InvalidateRequerySuggested();
-                
-                _task = new SearchSingleDirTask(RootDirectory, FileExtensions, SearchString, SearchFilenamesOnly);
-                try
-                {
-                    await _task.PerformSearch();
-                }
-                catch (Exception ex)
-                {
-                    if (ex is AggregateException || ex is OperationCanceledException)
-                    {
-
-                    }
-                    else throw;
-                }
-
-                SearchResults = _task.SearchResults;
-                st.Stop();
-
-                StatusText = (_cancelRequested ? "Cancelled!" : "Done!") + "  Found " + SearchResults.Count +
-                    " files... Checked " + _task.FilesSearched + " files. Time elapsed: " + st.Elapsed.ToString();
-
-                IsSearching = false;
-                _cancelRequested = false;
-                CommandManager.InvalidateRequerySuggested(); ;
-            }
-        }
-
-        public event PropertyChangedEventHandler PropertyChanged;
-        private void NotifyPropertyChanged(string name)
-        {
-            if (PropertyChanged != null)
-            {
-                PropertyChanged(this, new PropertyChangedEventArgs(name));
-            }
-        }
-    }
-
-    internal class CommandHandler : ICommand
-    {
-        private Action<object> _execute;
-        private Func<bool> _canExecute;
-
-        public CommandHandler(Action<object> execute, Func<bool> canExecute)
-        {
-            _execute = execute;
-            _canExecute = canExecute;
-        }
-
-        public bool CanExecute(object parameter)
-        {
-            return _canExecute();
-        }
-
-        public event EventHandler CanExecuteChanged
-        {
-            add { CommandManager.RequerySuggested += value; }
-            remove { CommandManager.RequerySuggested -= value; }
-        }
-
-        public void Execute(object parameter)
-        {
-            _execute(parameter);
-        }
-    }
+      public event PropertyChangedEventHandler PropertyChanged;
+      private void NotifyPropertyChanged(string name)
+      {
+         if (PropertyChanged != null)
+         {
+            PropertyChanged(this, new PropertyChangedEventArgs(name));
+         }
+      }
+   }
 }

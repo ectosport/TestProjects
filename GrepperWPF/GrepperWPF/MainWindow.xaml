@@ -6,6 +6,16 @@
     <Window.InputBindings>
         <KeyBinding Key="B" Modifiers="Control" Command="{Binding BrowseCommand}" />
     </Window.InputBindings>
+    <Window.Resources>
+        <Style TargetType="{x:Type DataGridCell}">
+            <Style.Triggers>
+                <Trigger Property="IsMouseOver" Value="True">
+                    <Setter Property="Background" Value="Chartreuse" />
+                    <Setter Property="FontWeight" Value="Bold"></Setter>
+                </Trigger>
+            </Style.Triggers>
+        </Style>
+    </Window.Resources>
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />
@@ -54,7 +64,7 @@
             </StackPanel>
         </Expander>
         <DataGrid Name="_fileListControl" Grid.Row="1" Margin="2" ItemsSource="{Binding SearchResults}" AutoGenerateColumns="False" IsReadOnly="True" VerticalScrollBarVisibility="Visible"
-                  MouseDoubleClick="_doubleClickOnFile" SelectionUnit="Cell">
+                  MouseDoubleClick="_doubleClickOnFile" SelectionUnit="Cell" PreviewMouseLeftButtonDown="_fileListControl_OnMouseLeftButtonDown">
             <DataGrid.Columns>
                 <DataGridTextColumn Header="File" MinWidth="180" Binding="{Binding Filename}" Width="Auto" />
                 <DataGridTextColumn Header="Relative Path" Binding="{Binding RelativePath}" Width="*" />
