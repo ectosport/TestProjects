@@ -8,7 +8,7 @@ using System.Windows.Controls;
 
 namespace GrepperWPF
 {
-   public static class TextBoxHelper
+   public class TextBoxHelper : DependencyObject
    {
       public static int GetSelectionStart(DependencyObject obj)
       {
