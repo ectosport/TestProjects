@@ -48,13 +48,22 @@
       <SubType>Designer</SubType>
     </ApplicationDefinition>
     <Compile Include="CommandHandler.cs" />
+    <Compile Include="DirectoryHistoryViewModel.cs" />
+    <Compile Include="EditBrowseHistory.xaml.cs">
+      <DependentUpon>EditBrowseHistory.xaml</DependentUpon>
+    </Compile>
     <Compile Include="MouseWheelGesture.cs" />
     <Compile Include="SearchResultViewModel.cs" />
     <Compile Include="SearchResultWindow.xaml.cs">
       <DependentUpon>SearchResultWindow.xaml</DependentUpon>
     </Compile>
     <Compile Include="TextBoxExtensions.cs" />
+    <Compile Include="WindowCloseEventArgs.cs" />
     <Compile Include="WindowPlacement.cs" />
+    <Page Include="EditBrowseHistory.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
     <Page Include="MainWindow.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>

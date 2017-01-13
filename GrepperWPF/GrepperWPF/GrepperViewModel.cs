@@ -36,13 +36,6 @@ namespace GrepperWPF
          {
             _rootDirectory = value;
 
-            if (browseHistory.Contains(_rootDirectory) == false && Directory.Exists(_rootDirectory))
-            {
-               if (_rootDirectory.EndsWith("\\") == false) _rootDirectory += "\\";
-               browseHistory.Add(_rootDirectory);
-               NotifyPropertyChanged("BrowseHistoryTooltip");
-            }
-
             NotifyPropertyChanged("RootDirectory");
             NotifyPropertyChanged("SearchButtonEnabled");
          }
@@ -151,6 +144,12 @@ namespace GrepperWPF
          get { return _browseHistoryCommand; }
       }
 
+      private readonly ICommand _editDirectoryHistoryCommand;
+      public ICommand EditDirectoryHistoryCommand
+      {
+         get { return _editDirectoryHistoryCommand; }
+      }
+
       public string BrowseHistoryTooltip
       {
          get
@@ -179,6 +178,7 @@ namespace GrepperWPF
          _searchCommand = new CommandHandler((o) => this.Search(), () => this.SearchButtonEnabled);
          _browseCommand = new CommandHandler(browseForDirectory, () => true);
          _browseHistoryCommand = new CommandHandler(this.navigateHistory, () => true);
+         _editDirectoryHistoryCommand = new CommandHandler((o) => this.EditDirectoryHistory(o), () => true);
       }
 
       private void browseForDirectory(object parameter)
@@ -197,6 +197,22 @@ namespace GrepperWPF
             this.RootDirectory = dialog.FileName.Substring(0, dialog.FileName.LastIndexOf(@"\")); ;
          }
       }
+
+      private void EditDirectoryHistory(object parameter)
+      {
+         var dhvm = new DirectoryHistoryViewModel(browseHistory);
+         var editDialog = new EditBrowseHistory(dhvm);
+         bool? ok = editDialog.ShowDialog();
+         if (ok == true)
+         {
+            string dir = dhvm.SelectedDirectory.DirectoryPath;
+            if (string.IsNullOrEmpty(dir) == false)
+            {
+               RootDirectory = dir;
+            }
+         }
+      }
+
 
       private void navigateHistory(object parameter)
       {
@@ -245,6 +261,14 @@ namespace GrepperWPF
             IsSearching = true;
             _cancelRequested = false;
             CommandManager.InvalidateRequerySuggested();
+
+            var trimmed = _rootDirectory.Trim('\\');
+
+            if (browseHistory.Contains(trimmed) == false && Directory.Exists(trimmed))
+            {
+               browseHistory.Add(trimmed);
+               NotifyPropertyChanged("BrowseHistoryTooltip");
+            }
 
             _task = new SearchSingleDirTask(RootDirectory, FileExtensions, SearchString, SearchFilenamesOnly);
             try

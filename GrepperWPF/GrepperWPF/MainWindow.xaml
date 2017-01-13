@@ -5,6 +5,7 @@
         Title="Grepper" Height="350" Width="725" Closing="Window_Closing_1">
     <Window.InputBindings>
         <KeyBinding Key="B" Modifiers="Control" Command="{Binding BrowseCommand}" />
+        <KeyBinding Key="D" Modifiers="Control" Command="{Binding EditDirectoryHistoryCommand}" />
     </Window.InputBindings>
     <Window.Resources>
         <Style TargetType="{x:Type DataGridCell}">
@@ -41,6 +42,11 @@
                                 <TextBlock Text="{Binding BrowseHistoryTooltip}" />
                             </StackPanel>
                         </TextBox.ToolTip>
+                        <TextBox.ContextMenu>
+                            <ContextMenu>
+                                <MenuItem Header="Directory History" Command="{Binding EditDirectoryHistoryCommand}" />
+                            </ContextMenu>
+                        </TextBox.ContextMenu>
                     </TextBox>            
                 </DockPanel>
                 <DockPanel>
