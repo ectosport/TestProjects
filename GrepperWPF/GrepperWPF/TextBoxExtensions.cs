@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 
-namespace GrepperWPF
+namespace SimpleSearch
 {
    public class TextBoxHelper : DependencyObject
    {
@@ -34,7 +34,7 @@ namespace GrepperWPF
          if (tb != null)
          {
             tb.SelectionStart = (int)e.NewValue;
-            tb.Focus();
+            //tb.Focus();
             
             var rect = tb.GetRectFromCharacterIndex(tb.SelectionStart);
             var line = tb.GetLineIndexFromCharacterIndex(tb.SelectionStart);
@@ -74,7 +74,7 @@ namespace GrepperWPF
          if (tb != null)
          {
             tb.SelectionLength = (int)e.NewValue;
-            tb.Focus();
+            //tb.Focus();
          }
       }
    }

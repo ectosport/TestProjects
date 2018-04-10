@@ -6,44 +6,29 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Input;
 
-namespace GrepperWPF
+namespace SimpleSearch
 {
    internal class DirectoryHistoryViewModel
    {
       private readonly List<string> directoryHistory;
 
-      private readonly ICommand removeSelectedDirectoriesCommand;
-      public ICommand RemoveSelectedDirectoriesCommand
-      {
-         get { return removeSelectedDirectoriesCommand; }
-      }
+      public ICommand RemoveSelectedDirectoriesCommand { get; }
 
-      private readonly ICommand selectDirectoryCommand;
-      public ICommand SelectDirectoryCommand
-      {
-         get { return selectDirectoryCommand; }
-      }
+      public ICommand SelectDirectoryCommand { get; }
 
-      private readonly ICommand closeWindowCommand;
-      public ICommand CloseWindowCommand
-      {
-         get { return closeWindowCommand; }
-      }
+      public ICommand CloseWindowCommand { get; }
 
-      public ObservableCollection<SelectableDirectoryItem> SelectableDirectoryItems
-      {
-         get; set;
-      }
+      public ObservableCollection<SelectableDirectoryItem> SelectableDirectoryItems { get; }
 
       public SelectableDirectoryItem SelectedDirectory { get; set; }
 
-      public event EventHandler RequestClose;      
+      public event EventHandler RequestClose;
 
       public DirectoryHistoryViewModel(List<string> directoryHistory)
       {
-         this.removeSelectedDirectoriesCommand = new CommandHandler(RemoveSelectedDirectories, () => true);
-         this.selectDirectoryCommand = new CommandHandler(SelectDirectory, () => true);
-         this.closeWindowCommand = new CommandHandler((o) => this.RequestClose?.Invoke(this, new WindowCloseEventArgs(isCancelled: true)), () => true);
+         this.RemoveSelectedDirectoriesCommand = new CommandHandler(RemoveSelectedDirectories, () => true);
+         this.SelectDirectoryCommand = new CommandHandler(SelectDirectory, () => true);
+         this.CloseWindowCommand = new CommandHandler((o) => this.RequestClose?.Invoke(this, new WindowCloseEventArgs(isCancelled: true)), () => true);
          this.directoryHistory = directoryHistory;
 
          var selectableDirectoryItems = new ObservableCollection<SelectableDirectoryItem>();

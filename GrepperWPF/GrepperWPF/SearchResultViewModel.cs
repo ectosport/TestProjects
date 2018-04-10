@@ -7,32 +7,28 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Input;
 
-namespace GrepperWPF
+namespace SimpleSearch
 {
    internal class SearchResultViewModel : INotifyPropertyChanged
    {
       private readonly SearchResult searchResult;
       private string fileContents;
-      private readonly string searchString;
+      private string searchString;
       private int selectionStart = 0, selectionLength = 0;
-      private ICommand previousCommand;
-      private ICommand nextCommand;
+      private bool caseSensitiveSearch;
       private List<int> indicesOfFound = new List<int>();
       
-      public SearchResultViewModel(SearchResult sr, string searchString)
+      public SearchResultViewModel(SearchResult sr, string searchString, bool caseSensitiveSearch)
       {
          searchResult = sr;
 
          FileContents = File.ReadAllText(this.FullPath);
          
-         this.searchString = searchString;
-         selectionLength = searchString.Length;
-         SearchForAllInstances();
+         this.SearchText = searchString;
+         this.caseSensitiveSearch = caseSensitiveSearch;
 
-         nextCommand = new CommandHandler((o) => GotoInstance(), () => indicesOfFound.Count > 1);
-         previousCommand = new CommandHandler((o) => GotoInstance(next: false), () => indicesOfFound.Count > 1);
-
-         GotoInstance();
+         this.NextCommand = new CommandHandler((o) => GotoInstance(), () => indicesOfFound.Count > 1);
+         this.PreviousCommand = new CommandHandler((o) => GotoInstance(next: false), () => indicesOfFound.Count > 1);
       }
 
       private void GotoInstance(bool next = true)
@@ -59,28 +55,30 @@ namespace GrepperWPF
             --currentIndex;
          }
 
-         SelectionStart = indicesOfFound[currentIndex];
+         if (currentIndex < indicesOfFound.Count)
+         {
+            SelectionStart = indicesOfFound[currentIndex];
+         }
+         else
+         {
+            SelectionLength = 0;
+         }
       }
 
       private void SearchForAllInstances()
       {
          int foundIndex = 0;
+         this.indicesOfFound.Clear();
          
-         while ((foundIndex = FileContents.IndexOf(this.searchString, foundIndex + selectionLength)) > 0)
+         while ((foundIndex = FileContents.IndexOf(this.searchString, foundIndex + selectionLength, this.CaseSensitiveSearch ? StringComparison.CurrentCulture : StringComparison.CurrentCultureIgnoreCase)) > 0)
          {
             this.indicesOfFound.Add(foundIndex);
          }
       }
 
-      public ICommand PreviousCommand
-      {
-         get { return previousCommand; }
-      }
+      public ICommand PreviousCommand { get; }
 
-      public ICommand NextCommand
-      {
-         get { return nextCommand; }
-      }
+      public ICommand NextCommand { get; }
 
       public string FileContents 
       {
@@ -102,6 +100,35 @@ namespace GrepperWPF
          {
             selectionLength = value;
             NotifyPropertyChanged("SelectionLength");
+         }
+      }
+
+      public string SearchText
+      {
+         get { return this.searchString; }
+         set
+         {
+            this.searchString = value;
+            this.selectionLength = this.searchString.Length;
+            this.SelectionStart = 0; // reset this when search text changes to start searching from beginning
+            SearchForAllInstances();
+            GotoInstance();
+            NotifyPropertyChanged(nameof(SearchText));
+            NotifyPropertyChanged("InstanceIndicator");
+         }
+      }
+
+      public bool CaseSensitiveSearch
+      {
+         get
+         {
+            return this.caseSensitiveSearch;
+         }
+
+         set
+         {
+            this.caseSensitiveSearch = value;
+            this.SearchText = this.searchString; // just setting it to the same thing to get the property setter to run and all the search code to execute
          }
       }
       

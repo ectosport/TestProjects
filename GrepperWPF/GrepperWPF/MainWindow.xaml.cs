@@ -1,4 +1,4 @@
-﻿using GrepperWPF.Properties;
+﻿using SimpleSearch.Properties;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -18,7 +18,7 @@ using System.Windows.Shapes;
 using System.Windows.Threading;
 using WindowPlacement;
 
-namespace GrepperWPF
+namespace SimpleSearch
 {
    /// <summary>
    /// Interaction logic for MainWindow.xaml
@@ -182,7 +182,7 @@ namespace GrepperWPF
             //int columnIndex = cell.Column.DisplayIndex;
             //int rowIndex = FindRowIndex(row);
 
-            var searchResultWindow = new SearchResultWindow(new SearchResultViewModel((SearchResult)row.Item, _vm.SearchString));
+            var searchResultWindow = new SearchResultWindow(new SearchResultViewModel((SearchResult)row.Item, _vm.SearchString, _vm.CaseSensitiveSearch));
             searchResultWindow.Show();
          }
       }

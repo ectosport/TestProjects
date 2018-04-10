@@ -7,10 +7,10 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Input;
-using GrepperWPF.Properties;
+using SimpleSearch.Properties;
 using Microsoft.Win32;
 
-namespace GrepperWPF
+namespace SimpleSearch
 {
    internal enum BrowseDirection
    {
@@ -19,11 +19,25 @@ namespace GrepperWPF
 
    internal class GrepperViewModel : INotifyPropertyChanged
    {
-      public bool SearchFilenamesOnly
-      {
-         get;
-         set;
-      }
+      #region Fields
+
+      private SearchSingleDirTask _task;
+      private bool _cancelRequested;
+      private Stopwatch st = new Stopwatch();
+      private List<string> browseHistory = new List<string>();
+      private string _fileExtensions;
+      private List<SearchResult> _searchResults;
+      private bool _isSearching = false;
+      private string _searchString;
+      private string _statusText;
+
+      #endregion
+
+      #region Properties
+
+      public bool SearchFilenamesOnly { get; set; }
+
+      public bool CaseSensitiveSearch { get; set; }
 
       private string _rootDirectory;
       public string RootDirectory
@@ -32,7 +46,7 @@ namespace GrepperWPF
          {
             return _rootDirectory;
          }
-         private set
+         set
          {
             _rootDirectory = value;
 
@@ -41,7 +55,6 @@ namespace GrepperWPF
          }
       }
 
-      private string _fileExtensions;
       public string FileExtensions
       {
          get
@@ -55,7 +68,6 @@ namespace GrepperWPF
          }
       }
 
-      private List<SearchResult> _searchResults;
       public List<SearchResult> SearchResults
       {
          get
@@ -69,7 +81,6 @@ namespace GrepperWPF
          }
       }
 
-      private bool _isSearching = false;
       private bool IsSearching
       {
          get
@@ -82,15 +93,8 @@ namespace GrepperWPF
             NotifyPropertyChanged("SearchButtonText");
          }
       }
-      public string SearchButtonText
-      {
-         get
-         {
-            return IsSearching ? "Cancel" : "Search";
-         }
-      }
+      public string SearchButtonText => IsSearching ? "Cancel" : "Search";
 
-      private string _searchString;
       public string SearchString
       {
          get
@@ -104,7 +108,6 @@ namespace GrepperWPF
          }
       }
 
-      private string _statusText;
       public string StatusText
       {
          get
@@ -118,51 +121,20 @@ namespace GrepperWPF
          }
       }
 
-      private bool SearchButtonEnabled
-      {
-         get
-         {
-            return (!_cancelRequested && Directory.Exists(_rootDirectory) && !String.IsNullOrEmpty(_searchString));
-         }
-      }
+      private bool SearchButtonEnabled => (!_cancelRequested && Directory.Exists(_rootDirectory) && !String.IsNullOrEmpty(_searchString));
 
-      private readonly ICommand _searchCommand;
-      public ICommand SearchCommand
-      {
-         get { return _searchCommand; }
-      }
+      public ICommand SearchCommand { get; }
 
-      private readonly ICommand _browseCommand;
-      public ICommand BrowseCommand
-      {
-         get { return _browseCommand; }
-      }
+      public ICommand BrowseCommand { get; }
 
-      private readonly ICommand _browseHistoryCommand;
-      public ICommand BrowseHistoryCommand
-      {
-         get { return _browseHistoryCommand; }
-      }
+      public ICommand BrowseHistoryCommand { get; }
 
-      private readonly ICommand _editDirectoryHistoryCommand;
-      public ICommand EditDirectoryHistoryCommand
-      {
-         get { return _editDirectoryHistoryCommand; }
-      }
+      public ICommand EditDirectoryHistoryCommand { get; }
 
-      public string BrowseHistoryTooltip
-      {
-         get
-         {
-            return string.Join(Environment.NewLine, browseHistory.ToArray());
-         }
-      }
+      public string BrowseHistoryTooltip => string.Join(Environment.NewLine, browseHistory.ToArray());
 
-      private SearchSingleDirTask _task;
-      private bool _cancelRequested;
-      private Stopwatch st = new Stopwatch();
-      private List<string> browseHistory = new List<string>();
-
+      #endregion
+      
       public GrepperViewModel()
       {
          if (String.IsNullOrEmpty(Settings.Default.BrowseHistory) == false)
@@ -173,19 +145,20 @@ namespace GrepperWPF
          FileExtensions = Settings.Default.Extensions;
          RootDirectory = Settings.Default.Path;
          SearchFilenamesOnly = Settings.Default.SearchFilenamesOnly;
+         CaseSensitiveSearch = Settings.Default.CaseSensitiveSearch;
          SearchString = Settings.Default.SearchString;
 
-         _searchCommand = new CommandHandler((o) => this.Search(), () => this.SearchButtonEnabled);
-         _browseCommand = new CommandHandler(browseForDirectory, () => true);
-         _browseHistoryCommand = new CommandHandler(this.navigateHistory, () => true);
-         _editDirectoryHistoryCommand = new CommandHandler((o) => this.EditDirectoryHistory(o), () => true);
+         this.SearchCommand = new CommandHandler((o) => this.Search(), () => this.SearchButtonEnabled);
+         this.BrowseCommand = new CommandHandler(browseForDirectory, () => true);
+         this.BrowseHistoryCommand = new CommandHandler(this.navigateHistory, () => true);
+         this.EditDirectoryHistoryCommand = new CommandHandler((o) => this.EditDirectoryHistory(o), () => true);
       }
 
       private void browseForDirectory(object parameter)
       {
          string strPath = Environment.CurrentDirectory;
          OpenFileDialog dialog = new OpenFileDialog();
-         dialog.Title = "Navigate to folder to diff...";
+         dialog.Title = "Navigate to folder to search...";
          dialog.CheckFileExists = false;
          dialog.FileName = "Choose Current Folder";
          dialog.Filter = "Folder|Folder";
@@ -213,7 +186,6 @@ namespace GrepperWPF
          }
       }
 
-
       private void navigateHistory(object parameter)
       {
          BrowseDirection direction = (BrowseDirection)parameter;
@@ -233,10 +205,11 @@ namespace GrepperWPF
       public void SaveSettings()
       {
          // Settings are stored in a place similar to this:
-         // C:\Users\<USERNAME>\AppData\Local\Microsoft\GrepperWPF.exe_Url_tbivpf0tacg32fgv0kknmcjlzzhn4nc2
+         // C:\Users\<USERNAME>\AppData\Local\Microsoft\SimpleSearch.exe_Url_tbivpf0tacg32fgv0kknmcjlzzhn4nc2
          Settings.Default.Extensions = FileExtensions;
          Settings.Default.Path = RootDirectory;
          Settings.Default.SearchFilenamesOnly = SearchFilenamesOnly;
+         Settings.Default.CaseSensitiveSearch = CaseSensitiveSearch;
          Settings.Default.SearchString = SearchString;
          Settings.Default.BrowseHistory = string.Join("?", browseHistory.ToArray());
          Settings.Default.Save();
@@ -270,7 +243,7 @@ namespace GrepperWPF
                NotifyPropertyChanged("BrowseHistoryTooltip");
             }
 
-            _task = new SearchSingleDirTask(RootDirectory, FileExtensions, SearchString, SearchFilenamesOnly);
+            _task = new SearchSingleDirTask(RootDirectory, FileExtensions, SearchString, SearchFilenamesOnly, CaseSensitiveSearch);
             try
             {
                await _task.PerformSearch();

@@ -5,61 +5,47 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Input;
 
-namespace GrepperWPF
+namespace SimpleSearch
 {
-    public class MouseWheelGesture : MouseGesture
-    {
-        public WheelDirection Direction { get; set; }
+   public class MouseWheelGesture : MouseGesture
+   {
+      public WheelDirection Direction { get; set; }
 
-        public static MouseWheelGesture ScrollDown
-        {
-            get
-            {
-                return new MouseWheelGesture() { Direction = WheelDirection.Down };
-            }
-        }
+      public static MouseWheelGesture ScrollDown => new MouseWheelGesture() { Direction = WheelDirection.Down };
 
-        public static MouseWheelGesture ScrollUp
-        {
-            get
-            {
-                return new MouseWheelGesture() { Direction = WheelDirection.Up };
-            }
-        }
-                
-        public MouseWheelGesture()
-            : base(MouseAction.WheelClick)
-        {
-        }
+      public static MouseWheelGesture ScrollUp => new MouseWheelGesture() { Direction = WheelDirection.Up };
 
-        public MouseWheelGesture(ModifierKeys modifiers)
-            : base(MouseAction.WheelClick, modifiers)
-        {
-        }
+      public MouseWheelGesture() : base(MouseAction.WheelClick)
+      {
+      }
 
-        public override bool Matches(object targetElement, InputEventArgs inputEventArgs)
-        {
-            if (!base.Matches(targetElement, inputEventArgs)) return false;
-            if (!(inputEventArgs is MouseWheelEventArgs)) return false;
-            var args = (MouseWheelEventArgs)inputEventArgs;
-            switch (Direction)
-            {
-                case WheelDirection.None:
-                    return args.Delta == 0;
-                case WheelDirection.Up:
-                    return args.Delta > 0;
-                case WheelDirection.Down:
-                    return args.Delta < 0;
-                default:
-                    return false;
-            }
-        }
+      public MouseWheelGesture(ModifierKeys modifiers) : base(MouseAction.WheelClick, modifiers)
+      {
+      }
 
-        public enum WheelDirection
-        {
-            None,
-            Up,
-            Down,
-        }
-    }
+      public override bool Matches(object targetElement, InputEventArgs inputEventArgs)
+      {
+         if (!base.Matches(targetElement, inputEventArgs)) return false;
+         if (!(inputEventArgs is MouseWheelEventArgs)) return false;
+         var args = (MouseWheelEventArgs)inputEventArgs;
+         switch (Direction)
+         {
+            case WheelDirection.None:
+               return args.Delta == 0;
+            case WheelDirection.Up:
+               return args.Delta > 0;
+            case WheelDirection.Down:
+               return args.Delta < 0;
+            default:
+               return false;
+         }
+      }
+
+      public enum WheelDirection
+      {
+         None,
+         Up,
+         Down,
+      }
+   }
 }

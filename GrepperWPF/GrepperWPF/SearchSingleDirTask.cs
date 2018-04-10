@@ -7,7 +7,7 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace GrepperWPF
+namespace SimpleSearch
 {
    internal class SearchSingleDirTask
    {
@@ -16,6 +16,7 @@ namespace GrepperWPF
       private readonly List<string> _fileExtensionsList = new List<string>();
       private readonly string _searchString;
       private readonly bool _searchFilenameOnly;
+      private readonly bool _caseSensitiveSearch;
       private ConcurrentBag<SearchResult> _matches = new ConcurrentBag<SearchResult>();
       private CancellationTokenSource _cts;
       private bool _anyExtension = false;
@@ -31,12 +32,13 @@ namespace GrepperWPF
          get { return _filesFound; }
       }
 
-      public SearchSingleDirTask(string baseDir, string fileExtStr, string searchString, bool searchFilenameOnly)
+      public SearchSingleDirTask(string baseDir, string fileExtStr, string searchString, bool searchFilenameOnly, bool caseSensitiveSearch)
       {
          _filesFound = 0;
          _baseDir = baseDir;
          _baseDirLength = baseDir.Length;
          _searchString = searchString;
+         _caseSensitiveSearch = caseSensitiveSearch;
          _searchFilenameOnly = searchFilenameOnly;
          _cts = new CancellationTokenSource();
 
@@ -86,7 +88,7 @@ namespace GrepperWPF
                   ++numFiles;
                   if (_searchFilenameOnly)
                   {
-                     if (fileInfo.Name.Contains(_searchString))
+                     if (fileInfo.Name.IndexOf(_searchString, _caseSensitiveSearch ? StringComparison.CurrentCulture : StringComparison.CurrentCultureIgnoreCase) >= 0)
                      {
                         SearchResult sr = new SearchResult() { Filename = fileInfo.Name, RelativePath = (_baseDirLength > fileInfo.DirectoryName.Length ? "." : fileInfo.DirectoryName.Substring(_baseDirLength)), Path = fileInfo.DirectoryName };
                         _matches.Add(sr);
@@ -128,7 +130,7 @@ namespace GrepperWPF
             {
                 while ((contents = reader.ReadLine()) != null)
                 {
-                    if (contents.Contains(_searchString))
+                    if (contents.IndexOf(_searchString, _caseSensitiveSearch ? StringComparison.CurrentCulture : StringComparison.CurrentCultureIgnoreCase) >= 0)
                     {
                         SearchResult sr = new SearchResult() { Filename = data.Name, RelativePath = (_baseDirLength > data.DirectoryName.Length ? "." : data.DirectoryName.Substring(_baseDirLength)), Path = data.DirectoryName };
                         _matches.Add(sr);
