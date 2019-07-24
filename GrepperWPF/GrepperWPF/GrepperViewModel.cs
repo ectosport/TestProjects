@@ -234,6 +234,7 @@ namespace SimpleSearch
                 CommandManager.InvalidateRequerySuggested();
 
                 var trimmed = _rootDirectory.Trim('\\');
+                trimmed = trimmed.ToLower();
 
                 if (browseHistory.Contains(trimmed) == false && Directory.Exists(trimmed))
                 {

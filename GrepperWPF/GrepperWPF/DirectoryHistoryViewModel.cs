@@ -35,7 +35,7 @@ namespace SimpleSearch
             foreach (var directory in directoryHistory)
             {
                 selectableDirectoryItems.Add(new SelectableDirectoryItem() { DirectoryPath = directory, Selected = false });
-            });
+            }
             this.SelectableDirectoryItems = selectableDirectoryItems;
 
         }
